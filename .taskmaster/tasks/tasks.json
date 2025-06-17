@@ -1,0 +1,220 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Project Setup and Configuration",
+        "description": "Initialize Flutter project with proper folder structure following MVVM and Clean Architecture patterns, set up dependencies, and configure basic project settings.",
+        "details": "1. Create a new Flutter project using `flutter create flutter_mcp_client`\n2. Set up folder structure according to the PRD:\n   - core/\n   - models/\n   - services/\n   - viewmodels/\n   - ui/screens and components\n   - repository/\n   - utils/\n   - l10n/\n   - config/\n3. Configure pubspec.yaml with initial dependencies:\n   - dio: ^5.0.0 (for network requests)\n   - provider: ^6.0.0 (for state management)\n   - get_it: ^7.2.0 (for dependency injection)\n   - shared_preferences: ^2.0.0 (for local storage)\n   - mockito: ^5.0.0 (for testing)\n4. Set up basic app theme, constants, and entry point in main.dart\n5. Configure platform-specific settings for iOS and Android",
+        "testStrategy": "Verify project structure is correctly set up with `flutter analyze`. Ensure the app builds and runs on both iOS and Android simulators/emulators without errors.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "in-progress",
+        "subtasks": []
+      },
+      {
+        "id": 2,
+        "title": "Core Models and Data Structures",
+        "description": "Define core data models for MCP servers, endpoints, connection states, and authentication methods.",
+        "details": "1. Create model classes in the models/ directory:\n   - MCPServer: Represents a server with properties like id, name, url, authType, etc.\n   - ConnectionState: Enum for server states (connected, disconnected, error, unsupported)\n   - AuthConfig: Abstract class with implementations for different auth types (ApiKey, Token, OAuth, etc.)\n   - ServerCapabilities: Model to track which features a server supports\n\nExample MCPServer model:\n```dart\nclass MCPServer {\n  final String id;\n  final String name;\n  final String endpoint;\n  final AuthConfig authConfig;\n  final Map<String, dynamic> customHeaders;\n  ConnectionState state;\n  ServerCapabilities capabilities;\n  \n  MCPServer({\n    required this.id,\n    required this.name,\n    required this.endpoint,\n    required this.authConfig,\n    this.customHeaders = const {},\n    this.state = ConnectionState.disconnected,\n    this.capabilities,\n  });\n  \n  // Add toJson/fromJson methods for persistence\n}\n```",
+        "testStrategy": "Write unit tests for each model class to verify proper initialization, serialization/deserialization, and validation logic. Test edge cases like invalid URLs or missing required fields.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "in-progress",
+        "subtasks": []
+      },
+      {
+        "id": 3,
+        "title": "Server Repository Implementation",
+        "description": "Create a repository layer to manage MCP server configurations, including CRUD operations and persistence.",
+        "details": "1. Create a ServerRepository interface in repository/ directory:\n```dart\nabstract class ServerRepository {\n  Future<List<MCPServer>> getAllServers();\n  Future<MCPServer?> getServerById(String id);\n  Future<void> addServer(MCPServer server);\n  Future<void> updateServer(MCPServer server);\n  Future<void> deleteServer(String id);\n  Future<void> setActiveServer(String id);\n  Future<MCPServer?> getActiveServer();\n}\n```\n\n2. Implement a concrete LocalServerRepository using SharedPreferences:\n```dart\nclass LocalServerRepository implements ServerRepository {\n  final SharedPreferences prefs;\n  \n  LocalServerRepository(this.prefs);\n  \n  // Implement all methods from the interface\n  // Use SharedPreferences to persist server configurations\n}\n```\n\n3. Add methods for importing/exporting server configurations",
+        "testStrategy": "Write unit tests using mockito to mock SharedPreferences. Test all CRUD operations, verify persistence works correctly, and test edge cases like adding duplicate servers or deleting non-existent servers.",
+        "priority": "high",
+        "dependencies": [
+          2
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 4,
+        "title": "MCP Client Service Abstraction",
+        "description": "Create an abstract service layer for MCP client operations with protocol-agnostic interfaces.",
+        "details": "1. Create an abstract MCPClientService in services/ directory:\n```dart\nabstract class MCPClientService {\n  // Connection management\n  Future<bool> connect(MCPServer server);\n  Future<void> disconnect();\n  Stream<ConnectionState> connectionStateStream();\n  \n  // Server capabilities detection\n  Future<ServerCapabilities> detectCapabilities(MCPServer server);\n  \n  // Basic operations that all MCP servers should support\n  // These will be extended by specific implementations\n  Future<bool> isServerSupported(MCPServer server);\n  Future<Map<String, dynamic>> sendRequest(String endpoint, Map<String, dynamic> payload);\n}\n```\n\n2. Create a BaseMCPClient class that implements common functionality\n3. Define error handling and retry mechanisms\n4. Implement connection timeout and health check functionality",
+        "testStrategy": "Create mock implementations of MCPClientService for testing. Write unit tests to verify connection handling, timeout behavior, and error handling. Test with both valid and invalid server configurations.",
+        "priority": "high",
+        "dependencies": [
+          2
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 5,
+        "title": "REST MCP Client Implementation",
+        "description": "Implement a concrete MCP client for REST-based servers using the Dio HTTP client.",
+        "details": "1. Create a RestMCPClient class that extends BaseMCPClient:\n```dart\nclass RestMCPClient extends BaseMCPClient {\n  final Dio dio;\n  \n  RestMCPClient(this.dio);\n  \n  @override\n  Future<bool> connect(MCPServer server) async {\n    // Configure Dio with server settings\n    dio.options.baseUrl = server.endpoint;\n    dio.options.headers = {...server.customHeaders};\n    \n    // Add auth interceptor based on server.authConfig\n    _configureAuth(server.authConfig);\n    \n    // Test connection with a health check\n    try {\n      final response = await dio.get('/health');\n      return response.statusCode == 200;\n    } catch (e) {\n      // Handle connection errors\n      return false;\n    }\n  }\n  \n  // Implement other methods from MCPClientService\n}\n```\n\n2. Implement authentication interceptors for different auth types\n3. Add request/response logging for debugging\n4. Implement retry logic for transient failures\n5. Add timeout handling and connection pooling",
+        "testStrategy": "Use mockito to mock Dio responses. Test successful connections, authentication failures, timeout scenarios, and retry behavior. Verify that headers and auth tokens are correctly applied to requests.",
+        "priority": "medium",
+        "dependencies": [
+          4
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 6,
+        "title": "WebSocket MCP Client Implementation",
+        "description": "Implement a concrete MCP client for WebSocket-based servers to support real-time communication.",
+        "details": "1. Add web_socket_channel dependency to pubspec.yaml\n2. Create a WebSocketMCPClient class that extends BaseMCPClient:\n```dart\nclass WebSocketMCPClient extends BaseMCPClient {\n  WebSocketChannel? _channel;\n  final StreamController<ConnectionState> _connectionStateController = StreamController.broadcast();\n  \n  @override\n  Future<bool> connect(MCPServer server) async {\n    try {\n      // Apply authentication in the URL or headers as needed\n      final uri = _buildUriWithAuth(server);\n      _channel = WebSocketChannel.connect(uri);\n      \n      // Listen for connection events\n      _channel!.stream.listen(\n        _handleMessage,\n        onError: _handleError,\n        onDone: _handleDisconnect,\n      );\n      \n      _connectionStateController.add(ConnectionState.connected);\n      return true;\n    } catch (e) {\n      _connectionStateController.add(ConnectionState.error);\n      return false;\n    }\n  }\n  \n  // Implement other methods and handlers\n}\n```\n\n3. Implement message handling, reconnection logic, and heartbeat mechanism\n4. Add support for binary messages and large payloads\n5. Implement graceful connection termination",
+        "testStrategy": "Create a mock WebSocket server for testing. Verify connection establishment, message sending/receiving, reconnection after network failures, and proper cleanup on disconnect. Test with different authentication methods.",
+        "priority": "medium",
+        "dependencies": [
+          4
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 7,
+        "title": "MCP Client Factory and Registry",
+        "description": "Create a factory pattern to dynamically select and instantiate the appropriate MCP client implementation based on server capabilities.",
+        "details": "1. Create an MCPClientFactory class:\n```dart\nclass MCPClientFactory {\n  final Map<String, MCPClientService Function()> _registry = {};\n  \n  void registerClientType(String type, MCPClientService Function() factory) {\n    _registry[type] = factory;\n  }\n  \n  MCPClientService? createClient(String type) {\n    final factory = _registry[type];\n    return factory?.call();\n  }\n  \n  MCPClientService createClientForServer(MCPServer server) {\n    // Detect server type or use specified type\n    final serverType = server.type ?? detectServerType(server);\n    final client = createClient(serverType);\n    \n    if (client == null) {\n      throw UnsupportedServerTypeException(serverType);\n    }\n    \n    return client;\n  }\n  \n  String detectServerType(MCPServer server) {\n    // Logic to detect server type from URL or capabilities\n  }\n}\n```\n\n2. Register client implementations in the app initialization:\n```dart\nfinal clientFactory = MCPClientFactory();\nclientFactory.registerClientType('rest', () => RestMCPClient(Dio()));\nclientFactory.registerClientType('websocket', () => WebSocketMCPClient());\n```\n\n3. Add capability detection logic to determine the best client for a server",
+        "testStrategy": "Test factory registration and client creation with different server types. Verify that the correct client implementation is selected based on server capabilities. Test error handling for unsupported server types.",
+        "priority": "medium",
+        "dependencies": [
+          5,
+          6
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 8,
+        "title": "Server Manager ViewModel",
+        "description": "Create a ViewModel to manage server configurations, active server selection, and connection state.",
+        "details": "1. Create a ServerManagerViewModel class using Provider or Riverpod:\n```dart\nclass ServerManagerViewModel extends ChangeNotifier {\n  final ServerRepository _repository;\n  final MCPClientFactory _clientFactory;\n  \n  List<MCPServer> _servers = [];\n  MCPServer? _activeServer;\n  MCPClientService? _activeClient;\n  ConnectionState _connectionState = ConnectionState.disconnected;\n  \n  ServerManagerViewModel(this._repository, this._clientFactory) {\n    _loadServers();\n  }\n  \n  // Getters\n  List<MCPServer> get servers => _servers;\n  MCPServer? get activeServer => _activeServer;\n  ConnectionState get connectionState => _connectionState;\n  bool get isConnected => _connectionState == ConnectionState.connected;\n  \n  // Server CRUD operations\n  Future<void> addServer(MCPServer server) async {\n    await _repository.addServer(server);\n    _servers.add(server);\n    notifyListeners();\n  }\n  \n  // Connection management\n  Future<bool> connectToServer(String serverId) async {\n    final server = _servers.firstWhere((s) => s.id == serverId);\n    _activeServer = server;\n    \n    try {\n      _activeClient = _clientFactory.createClientForServer(server);\n      final connected = await _activeClient!.connect(server);\n      \n      if (connected) {\n        _connectionState = ConnectionState.connected;\n        await _repository.setActiveServer(serverId);\n      } else {\n        _connectionState = ConnectionState.error;\n      }\n      \n      notifyListeners();\n      return connected;\n    } catch (e) {\n      _connectionState = ConnectionState.error;\n      notifyListeners();\n      return false;\n    }\n  }\n  \n  // Other methods for server management\n}\n```\n\n2. Add methods for server editing, deletion, and reordering\n3. Implement auto-reconnect functionality\n4. Add server capability detection and feature availability",
+        "testStrategy": "Write unit tests using mockito to mock the repository and client factory. Test all CRUD operations, connection management, and state changes. Verify that listeners are notified appropriately when state changes.",
+        "priority": "high",
+        "dependencies": [
+          3,
+          7
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 9,
+        "title": "Server List UI Screen",
+        "description": "Create a UI screen to display, add, edit, and delete MCP server configurations.",
+        "details": "1. Create a ServerListScreen widget:\n```dart\nclass ServerListScreen extends StatelessWidget {\n  @override\n  Widget build(BuildContext context) {\n    return Consumer<ServerManagerViewModel>(builder: (context, viewModel, _) {\n      return Scaffold(\n        appBar: AppBar(title: Text('MCP Servers')),\n        body: viewModel.servers.isEmpty\n          ? _buildEmptyState()\n          : ListView.builder(\n              itemCount: viewModel.servers.length,\n              itemBuilder: (context, index) {\n                final server = viewModel.servers[index];\n                return ServerListItem(\n                  server: server,\n                  isActive: server.id == viewModel.activeServer?.id,\n                  onTap: () => viewModel.connectToServer(server.id),\n                  onEdit: () => _showEditDialog(context, server),\n                  onDelete: () => _showDeleteConfirmation(context, server),\n                );\n              },\n            ),\n        floatingActionButton: FloatingActionButton(\n          child: Icon(Icons.add),\n          onPressed: () => _showAddDialog(context),\n        ),\n      );\n    });\n  }\n  \n  // Helper methods for dialogs and empty state\n}\n```\n\n2. Create a ServerListItem widget to display server info and status\n3. Implement add/edit dialogs with form validation\n4. Add swipe-to-delete functionality\n5. Show connection status indicators for each server",
+        "testStrategy": "Write widget tests to verify UI rendering, list behavior, and dialog interactions. Test empty state, populated list, and error states. Verify that user interactions correctly trigger the appropriate ViewModel methods.",
+        "priority": "medium",
+        "dependencies": [
+          8
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 10,
+        "title": "Server Configuration Form",
+        "description": "Create a reusable form component for adding and editing MCP server configurations with validation.",
+        "details": "1. Create a ServerConfigForm widget:\n```dart\nclass ServerConfigForm extends StatefulWidget {\n  final MCPServer? initialServer;\n  final Function(MCPServer) onSubmit;\n  \n  ServerConfigForm({this.initialServer, required this.onSubmit});\n  \n  @override\n  _ServerConfigFormState createState() => _ServerConfigFormState();\n}\n\nclass _ServerConfigFormState extends State<ServerConfigForm> {\n  final _formKey = GlobalKey<FormState>();\n  late TextEditingController _nameController;\n  late TextEditingController _endpointController;\n  AuthType _selectedAuthType = AuthType.apiKey;\n  late TextEditingController _authValueController;\n  \n  @override\n  void initState() {\n    super.initState();\n    _nameController = TextEditingController(text: widget.initialServer?.name ?? '');\n    _endpointController = TextEditingController(text: widget.initialServer?.endpoint ?? '');\n    _selectedAuthType = widget.initialServer?.authConfig.type ?? AuthType.apiKey;\n    _authValueController = TextEditingController(text: _getInitialAuthValue());\n  }\n  \n  @override\n  Widget build(BuildContext context) {\n    return Form(\n      key: _formKey,\n      child: Column(\n        children: [\n          TextFormField(\n            controller: _nameController,\n            decoration: InputDecoration(labelText: 'Server Name'),\n            validator: (value) => value?.isEmpty ?? true ? 'Name is required' : null,\n          ),\n          TextFormField(\n            controller: _endpointController,\n            decoration: InputDecoration(labelText: 'Endpoint URL'),\n            validator: _validateUrl,\n          ),\n          DropdownButtonFormField<AuthType>(\n            value: _selectedAuthType,\n            items: AuthType.values.map((type) => DropdownMenuItem(\n              value: type,\n              child: Text(type.toString().split('.').last),\n            )).toList(),\n            onChanged: (value) => setState(() => _selectedAuthType = value!),\n            decoration: InputDecoration(labelText: 'Authentication Type'),\n          ),\n          TextFormField(\n            controller: _authValueController,\n            decoration: InputDecoration(labelText: _getAuthValueLabel()),\n            validator: (value) => value?.isEmpty ?? true ? 'Authentication value is required' : null,\n            obscureText: _selectedAuthType != AuthType.none,\n          ),\n          SizedBox(height: 20),\n          ElevatedButton(\n            onPressed: _submitForm,\n            child: Text(widget.initialServer == null ? 'Add Server' : 'Update Server'),\n          ),\n        ],\n      ),\n    );\n  }\n  \n  // Helper methods for validation and submission\n}\n```\n\n2. Implement validation for URL format, required fields, etc.\n3. Add support for custom headers with a dynamic form\n4. Implement different auth type fields (API key, bearer token, basic auth)\n5. Add a \"Test Connection\" button to validate server before saving",
+        "testStrategy": "Write widget tests to verify form validation, field interactions, and submission behavior. Test with valid and invalid inputs. Verify that the form correctly builds MCPServer objects with the provided values.",
+        "priority": "medium",
+        "dependencies": [
+          9
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 11,
+        "title": "Connection Status UI Components",
+        "description": "Create UI components to display server connection status, errors, and capabilities.",
+        "details": "1. Create a ConnectionStatusWidget:\n```dart\nclass ConnectionStatusWidget extends StatelessWidget {\n  final ConnectionState state;\n  final String? errorMessage;\n  final VoidCallback? onRetry;\n  \n  ConnectionStatusWidget({\n    required this.state,\n    this.errorMessage,\n    this.onRetry,\n  });\n  \n  @override\n  Widget build(BuildContext context) {\n    switch (state) {\n      case ConnectionState.connected:\n        return _buildConnectedState();\n      case ConnectionState.connecting:\n        return _buildConnectingState();\n      case ConnectionState.disconnected:\n        return _buildDisconnectedState();\n      case ConnectionState.error:\n        return _buildErrorState();\n      case ConnectionState.unsupported:\n        return _buildUnsupportedState();\n      default:\n        return SizedBox.shrink();\n    }\n  }\n  \n  Widget _buildConnectedState() {\n    return Row(\n      children: [\n        Icon(Icons.check_circle, color: Colors.green),\n        SizedBox(width: 8),\n        Text('Connected', style: TextStyle(color: Colors.green)),\n      ],\n    );\n  }\n  \n  // Other state builders\n}\n```\n\n2. Create a ServerCapabilitiesWidget to show supported features\n3. Implement error message display with retry button\n4. Add animations for state transitions\n5. Create a connection history log component",
+        "testStrategy": "Write widget tests for each connection state to verify correct rendering. Test with different error messages and capabilities. Verify that retry callbacks are triggered correctly.",
+        "priority": "medium",
+        "dependencies": [
+          8
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 12,
+        "title": "Server Connection Manager Screen",
+        "description": "Create a detailed screen for managing connections to a specific MCP server, showing status, capabilities, and connection options.",
+        "details": "1. Create a ServerConnectionScreen widget:\n```dart\nclass ServerConnectionScreen extends StatelessWidget {\n  final String serverId;\n  \n  ServerConnectionScreen({required this.serverId});\n  \n  @override\n  Widget build(BuildContext context) {\n    return Consumer<ServerManagerViewModel>(builder: (context, viewModel, _) {\n      final server = viewModel.servers.firstWhere((s) => s.id == serverId);\n      \n      return Scaffold(\n        appBar: AppBar(title: Text(server.name)),\n        body: SingleChildScrollView(\n          padding: EdgeInsets.all(16),\n          child: Column(\n            crossAxisAlignment: CrossAxisAlignment.start,\n            children: [\n              ConnectionStatusWidget(\n                state: server.state,\n                errorMessage: server.errorMessage,\n                onRetry: () => viewModel.connectToServer(serverId),\n              ),\n              SizedBox(height: 24),\n              _buildServerDetails(server),\n              SizedBox(height: 24),\n              if (server.state == ConnectionState.connected)\n                ServerCapabilitiesWidget(capabilities: server.capabilities),\n              SizedBox(height: 24),\n              _buildConnectionActions(context, viewModel, server),\n            ],\n          ),\n        ),\n      );\n    });\n  }\n  \n  Widget _buildServerDetails(MCPServer server) {\n    return Card(\n      child: Padding(\n        padding: EdgeInsets.all(16),\n        child: Column(\n          crossAxisAlignment: CrossAxisAlignment.start,\n          children: [\n            Text('Server Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),\n            SizedBox(height: 8),\n            _buildDetailRow('Endpoint', server.endpoint),\n            _buildDetailRow('Auth Type', server.authConfig.type.toString().split('.').last),\n            // Other details\n          ],\n        ),\n      ),\n    );\n  }\n  \n  // Helper methods for UI components\n}\n```\n\n2. Implement connection action buttons (connect, disconnect, test)\n3. Add server logs or recent activity display\n4. Create a performance metrics section (latency, etc.)\n5. Add capability-based feature toggles",
+        "testStrategy": "Write widget tests to verify screen rendering with different server states. Test action button behaviors and state transitions. Verify that server details are displayed correctly.",
+        "priority": "medium",
+        "dependencies": [
+          8,
+          11
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 13,
+        "title": "Persistent Storage Service",
+        "description": "Implement a service for persisting server configurations, connection history, and user preferences.",
+        "details": "1. Create a StorageService interface:\n```dart\nabstract class StorageService {\n  Future<void> saveData(String key, dynamic data);\n  Future<dynamic> loadData(String key);\n  Future<void> removeData(String key);\n  Future<bool> hasData(String key);\n  Future<void> clear();\n}\n```\n\n2. Implement a SharedPreferencesStorage class:\n```dart\nclass SharedPreferencesStorage implements StorageService {\n  final SharedPreferences _prefs;\n  \n  SharedPreferencesStorage(this._prefs);\n  \n  @override\n  Future<void> saveData(String key, dynamic data) async {\n    if (data is String) {\n      await _prefs.setString(key, data);\n    } else if (data is bool) {\n      await _prefs.setBool(key, data);\n    } else if (data is int) {\n      await _prefs.setInt(key, data);\n    } else if (data is double) {\n      await _prefs.setDouble(key, data);\n    } else if (data is List<String>) {\n      await _prefs.setStringList(key, data);\n    } else {\n      // For complex objects, convert to JSON string\n      await _prefs.setString(key, jsonEncode(data));\n    }\n  }\n  \n  // Implement other methods\n}\n```\n\n3. Add secure storage option for sensitive data (auth tokens)\n4. Implement data migration for version updates\n5. Add data export/import functionality",
+        "testStrategy": "Write unit tests with a mock SharedPreferences implementation. Test saving and loading different data types, including complex objects. Verify that data persistence works correctly across app restarts.",
+        "priority": "medium",
+        "dependencies": [
+          3
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 14,
+        "title": "Error Handling and Logging Service",
+        "description": "Implement centralized error handling, logging, and reporting for the application.",
+        "details": "1. Create a LoggingService class:\n```dart\nenum LogLevel { debug, info, warning, error, critical }\n\nclass LoggingService {\n  final List<LogSink> _sinks = [];\n  \n  void addSink(LogSink sink) {\n    _sinks.add(sink);\n  }\n  \n  void log(LogLevel level, String message, {Object? error, StackTrace? stackTrace}) {\n    final logEntry = LogEntry(\n      timestamp: DateTime.now(),\n      level: level,\n      message: message,\n      error: error,\n      stackTrace: stackTrace,\n    );\n    \n    for (final sink in _sinks) {\n      sink.write(logEntry);\n    }\n  }\n  \n  void debug(String message) => log(LogLevel.debug, message);\n  void info(String message) => log(LogLevel.info, message);\n  void warning(String message, {Object? error, StackTrace? stackTrace}) => \n      log(LogLevel.warning, message, error: error, stackTrace: stackTrace);\n  void error(String message, {required Object error, StackTrace? stackTrace}) => \n      log(LogLevel.error, message, error: error, stackTrace: stackTrace);\n  void critical(String message, {required Object error, StackTrace? stackTrace}) => \n      log(LogLevel.critical, message, error: error, stackTrace: stackTrace);\n}\n\nabstract class LogSink {\n  void write(LogEntry entry);\n}\n\nclass LogEntry {\n  final DateTime timestamp;\n  final LogLevel level;\n  final String message;\n  final Object? error;\n  final StackTrace? stackTrace;\n  \n  LogEntry({\n    required this.timestamp,\n    required this.level,\n    required this.message,\n    this.error,\n    this.stackTrace,\n  });\n}\n```\n\n2. Implement different log sinks (console, file, remote)\n3. Create a global error handler for uncaught exceptions\n4. Add network request/response logging\n5. Implement log rotation and cleanup for file logs",
+        "testStrategy": "Write unit tests for the logging service with mock sinks. Verify that logs are correctly formatted and routed to the appropriate sinks. Test error handling for different error types and scenarios.",
+        "priority": "medium",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 15,
+        "title": "Integration Testing and Documentation",
+        "description": "Create comprehensive integration tests and documentation for the MCP client library and UI components.",
+        "details": "1. Set up integration testing framework:\n```dart\nvoid main() {\n  IntegrationTestWidgetsFlutterBinding.ensureInitialized();\n  \n  group('End-to-end tests', () {\n    testWidgets('Add server and connect flow', (tester) async {\n      await tester.pumpWidget(MyApp());\n      \n      // Navigate to server list\n      await tester.tap(find.byIcon(Icons.list));\n      await tester.pumpAndSettle();\n      \n      // Add a new server\n      await tester.tap(find.byIcon(Icons.add));\n      await tester.pumpAndSettle();\n      \n      // Fill the form\n      await tester.enterText(find.byKey(Key('server_name')), 'Test Server');\n      await tester.enterText(find.byKey(Key('server_endpoint')), 'https://test-mcp-server.com');\n      await tester.tap(find.byKey(Key('auth_type_dropdown')));\n      await tester.pumpAndSettle();\n      await tester.tap(find.text('API Key').last);\n      await tester.pumpAndSettle();\n      await tester.enterText(find.byKey(Key('auth_value')), 'test-api-key');\n      \n      // Submit the form\n      await tester.tap(find.text('Add Server'));\n      await tester.pumpAndSettle();\n      \n      // Verify server was added\n      expect(find.text('Test Server'), findsOneWidget);\n      \n      // Connect to the server\n      await tester.tap(find.text('Test Server'));\n      await tester.pumpAndSettle();\n      \n      // Verify connection status\n      expect(find.text('Connected'), findsOneWidget);\n    });\n  });\n}\n```\n\n2. Create documentation for the library API:\n   - README.md with installation and basic usage\n   - API reference documentation with dartdoc\n   - Example code snippets for common scenarios\n   - Architecture overview diagram\n\n3. Create user guide for the UI components\n4. Add performance benchmarks for different server types\n5. Document error codes and troubleshooting steps",
+        "testStrategy": "Run integration tests on both iOS and Android devices/emulators. Verify that all user flows work correctly end-to-end. Test with real MCP servers when possible. Validate documentation accuracy and completeness with peer review.",
+        "priority": "low",
+        "dependencies": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14
+        ],
+        "status": "pending",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2025-06-17T04:47:56.065Z",
+      "updated": "2025-06-17T05:43:14.038Z",
+      "description": "Tasks for master context"
+    }
+  }
+}
