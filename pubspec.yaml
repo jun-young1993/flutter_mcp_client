@@ -31,8 +31,8 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_common:
-    # path: /Users/junyoungkim/Desktop/junyoung/app/source/flutter_common
-    path: C:/Users/junyoung/junyoung/source/flutter_common
+    path: /Users/junyoungkim/Desktop/junyoung/app/source/flutter_common
+    # path: C:/Users/junyoung/junyoung/source/flutter_common
     # git:
     #   url: https://github.com/jun-young1993/flutter_common.git
     #   ref: v1.0.12
@@ -43,6 +43,7 @@ dependencies:
   mcp_client: ^1.0.0
   flutter_dotenv: ^5.2.1
   flutter_bloc: ^8.1.3
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:
