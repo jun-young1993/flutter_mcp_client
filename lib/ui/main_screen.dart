@@ -6,9 +6,9 @@ import 'package:flutter_common/state/app_config/app_config_bloc.dart';
 import 'package:flutter_common/state/user/user_bloc.dart';
 import 'package:flutter_common/state/user/user_event.dart';
 import 'package:flutter_common/widgets/app/app_screen.dart';
-import 'package:flutter_common/widgets/layout/chat_screen.dart';
 import 'package:flutter_common/widgets/layout/setting_screen_layout.dart';
 import 'package:flutter_common/widgets/layout/notice_screen_layout.dart';
+import 'package:flutter_mcp_client/ui/screen/ai_chat_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -31,7 +31,7 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return AppScreen(
       screens: [
-        ChatScreen(),
+        AIChatScreen(),
         NoticeScreenLayout(groupName: 'parking-zone-code-02782'),
         SettingScreenLayout(appKey: AppKeys.caughtSmoking),
       ],
