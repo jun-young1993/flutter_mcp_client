@@ -16,10 +16,11 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
   final prefs = await SharedPreferences.getInstance();
+  final apiUrl = dotenv.env['API_URL'];
 
   runApp(
     CommonProvider(
-      dioClient: DioClient(),
+      dioClient: DioClient(baseUrl: apiUrl, useLogInterceptor: false),
       appKey: AppKeys.caughtSmoking,
       sharedPreferences: prefs,
       child: MyApp(child: MainScreen()),
