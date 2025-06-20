@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_common/app_navigation.dart';
 import 'package:flutter_common/constants/index.dart';
 import 'package:flutter_common/state/app/app_bloc.dart';
 import 'package:flutter_common/state/app_config/app_config_bloc.dart';
@@ -8,7 +9,11 @@ import 'package:flutter_common/state/user/user_event.dart';
 import 'package:flutter_common/widgets/app/app_screen.dart';
 import 'package:flutter_common/widgets/layout/setting_screen_layout.dart';
 import 'package:flutter_common/widgets/layout/notice_screen_layout.dart';
+import 'package:flutter_common/widgets/lib/container/card_container.dart';
+import 'package:flutter_common/widgets/lib/container/card_container_item.dart';
+import 'package:flutter_mcp_client/route.dart';
 import 'package:flutter_mcp_client/ui/screen/ai_chat_screen.dart';
+import 'package:flutter_mcp_client/ui/screen/setting_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -33,7 +38,19 @@ class _MainScreenState extends State<MainScreen> {
       screens: [
         AIChatScreen(),
         NoticeScreenLayout(groupName: 'parking-zone-code-02782'),
-        SettingScreenLayout(appKey: AppKeys.caughtSmoking),
+        SettingScreenLayout(
+          topChildren: [
+            CardContainer(
+              title: 'MCP Server Setting',
+              icon: Icons.api,
+              actionIcon: Icons.edit,
+              onAction: () {
+                AppNavigator.I.push(AppRoutes.aiSetting);
+              },
+            ),
+          ],
+          appKey: AppKeys.caughtSmoking,
+        ),
       ],
       items: [
         BottomNavigationBarItem(icon: Icon(Icons.chat), label: '채팅'),
