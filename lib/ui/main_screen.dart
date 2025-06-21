@@ -41,7 +41,7 @@ class _MainScreenState extends State<MainScreen> {
         SettingScreenLayout(
           topChildren: [
             CardContainer(
-              title: 'MCP Server Setting',
+              title: 'MCP Setting',
               icon: Icons.api,
               actionIcon: Icons.edit,
               onAction: () {
