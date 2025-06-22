@@ -1,6 +1,8 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_common/app_navigation.dart';
+import 'package:flutter_common/common_il8n.dart';
 import 'package:flutter_common/constants/index.dart';
 import 'package:flutter_common/state/app/app_bloc.dart';
 import 'package:flutter_common/state/app_config/app_config_bloc.dart';
@@ -41,7 +43,7 @@ class _MainScreenState extends State<MainScreen> {
         SettingScreenLayout(
           topChildren: [
             CardContainer(
-              title: 'MCP Setting',
+              title: Tr.mcp.setting.tr(),
               icon: Icons.api,
               actionIcon: Icons.edit,
               onAction: () {
@@ -53,9 +55,18 @@ class _MainScreenState extends State<MainScreen> {
         ),
       ],
       items: [
-        BottomNavigationBarItem(icon: Icon(Icons.chat), label: '채팅'),
-        BottomNavigationBarItem(icon: Icon(Icons.forum), label: '커뮤니티'),
-        BottomNavigationBarItem(icon: Icon(Icons.settings), label: '설정'),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.chat),
+          label: Tr.chat.title.tr(),
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.forum),
+          label: Tr.app.community.tr(),
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.settings),
+          label: Tr.app.settings.tr(),
+        ),
       ],
       bloc: appBloc,
     );

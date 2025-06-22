@@ -35,6 +35,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
         messages: messages,
         onSendMessage: (message) {
           chatBloc.add(McpChatEvent.sendMessage(message));
+          // chatBloc.add(McpChatEvent.streamMessage(message));
         },
       );
     });
