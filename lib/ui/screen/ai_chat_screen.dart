@@ -29,6 +29,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
   @override
   Widget build(BuildContext context) {
     return McpChatMessagesSelector((messages) {
+      debugPrint('messages: $messages');
       return McpChatScreenLayout(
         settingIcon: Icons.api,
         onSettingsPressed: () => AppNavigator.I.push(AppRoutes.aiSetting),
