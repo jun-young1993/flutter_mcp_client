@@ -32,7 +32,7 @@ Future<void> main() async {
   runApp(
     CommonProvider(
       dioClient: DioClient(baseUrl: apiUrl, useLogInterceptor: false),
-      appKey: AppKeys.caughtSmoking,
+      appKey: AppKeys.mcpClient,
       sharedPreferences: prefs,
       child: MyApp(child: MainScreen()),
     ),

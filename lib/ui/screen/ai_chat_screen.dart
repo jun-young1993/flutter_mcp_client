@@ -34,8 +34,8 @@ class _AIChatScreenState extends State<AIChatScreen> {
         onSettingsPressed: () => AppNavigator.I.push(AppRoutes.aiSetting),
         messages: messages,
         onSendMessage: (message) {
-          chatBloc.add(McpChatEvent.sendMessage(message));
-          // chatBloc.add(McpChatEvent.streamMessage(message));
+          // chatBloc.add(McpChatEvent.sendMessage(message));
+          chatBloc.add(McpChatEvent.streamMessage(message));
         },
       );
     });
