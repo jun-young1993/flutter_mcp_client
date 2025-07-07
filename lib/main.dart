@@ -1,5 +1,7 @@
 // import 'dart:convert';
 
+import 'dart:io';
+
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_common/app_navigation.dart';
@@ -17,13 +19,17 @@ Future<void> main() async {
   await AdManager().initialize();
   await EasyLocalization.ensureInitialized();
   AdManager.setRealAdUnitIds({
-    'android': {'banner': ''},
+    'android': {'banner': 'ca-app-pub-4656262305566191/9797389928'},
     'ios': {'banner': 'ca-app-pub-4656262305566191/7656024890'},
   });
-
+  FlutterError.onError = (FlutterErrorDetails details) {
+    debugPrint('[FLUTTER ERROR] ${details.exception}');
+    debugPrint('[STACKTRACE] ${details.stack}');
+  };
   final prefs = await SharedPreferences.getInstance();
 
   final apiUrl = JunyConstants.apiBaseUrl;
+  debugPrint('apiUrl: $apiUrl');
 
   AppNavigator.init<AppRoutes, AppPaths>(
     onGenerateRoute: AppPaths().onGenerateRoute,
@@ -31,7 +37,11 @@ Future<void> main() async {
   );
   runApp(
     CommonProvider(
-      dioClient: DioClient(baseUrl: apiUrl, useLogInterceptor: false),
+      dioClient: DioClient(
+        baseUrl: apiUrl,
+        useLogInterceptor: false,
+        debugBaseUrl: apiUrl,
+      ),
       appKey: AppKeys.mcpClient,
       sharedPreferences: prefs,
       child: MyApp(child: MainScreen()),
