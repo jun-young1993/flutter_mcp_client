@@ -47,5 +47,7 @@
 	<true/>
 	<key>GADApplicationIdentifier</key>
 	<string>ca-app-pub-4656262305566191~6773623418</string>
+	<key>NSContactsUsageDescription</key>
+	<string>We need access to your contacts to provide better service</string>
 </dict>
 </plist>
