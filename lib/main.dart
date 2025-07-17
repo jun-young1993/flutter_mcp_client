@@ -57,6 +57,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'AI Tool Assistant',
+      debugShowCheckedModeBanner: false,
       navigatorKey: AppNavigator.I.navigatorKey,
       onGenerateRoute: AppNavigator.I.onGenerateRoute,
       localizationsDelegates: context.localizationDelegates,
