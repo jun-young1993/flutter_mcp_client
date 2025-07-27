@@ -8,6 +8,7 @@ import 'package:flutter_common/state/app/app_bloc.dart';
 import 'package:flutter_common/state/app_config/app_config_bloc.dart';
 import 'package:flutter_common/state/user/user_bloc.dart';
 import 'package:flutter_common/state/user/user_event.dart';
+import 'package:flutter_common/state/user/user_selector.dart';
 import 'package:flutter_common/widgets/app/app_screen.dart';
 import 'package:flutter_common/widgets/layout/setting_screen_layout.dart';
 import 'package:flutter_common/widgets/layout/notice_screen_layout.dart';
@@ -39,7 +40,12 @@ class _MainScreenState extends State<MainScreen> {
     return AppScreen(
       screens: [
         AIChatScreen(),
-        NoticeScreenLayout(groupName: 'parking-zone-code-02782'),
+        UserInfoSelector((user) {
+          if (user == null) {
+            return const SizedBox.shrink();
+          }
+          return NoticeScreenLayout(groupName: 'mcp-client', user: user);
+        }),
         SettingScreenLayout(
           topChildren: [
             CardContainer(

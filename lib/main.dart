@@ -22,6 +22,10 @@ Future<void> main() async {
     'android': {'banner': 'ca-app-pub-4656262305566191/9797389928'},
     'ios': {'banner': 'ca-app-pub-4656262305566191/7656024890'},
   });
+  AdManager.setTestIds({
+    'android': {'banner': 'ca-app-pub-3940256099942544/6300978111'},
+    'ios': {'banner': 'ca-app-pub-3940256099942544/2934735716'},
+  });
   FlutterError.onError = (FlutterErrorDetails details) {
     debugPrint('[FLUTTER ERROR] ${details.exception}');
     debugPrint('[STACKTRACE] ${details.stack}');
