@@ -4,11 +4,15 @@ import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_common/app_navigation.dart';
 import 'package:flutter_common/constants/juny_constants.dart';
 import 'package:flutter_common/network/dio_client.dart';
 import 'package:flutter_common/providers/common_provider.dart';
+import 'package:flutter_common/repositories/notice_repository.dart';
+import 'package:flutter_common/state/notice/notice_page_bloc.dart';
 import 'package:flutter_common/widgets/ad/ad_manager.dart';
+import 'package:flutter_common/widgets/ad/ad_master.dart';
 import 'package:flutter_mcp_client/route.dart';
 
 import 'package:flutter_mcp_client/ui/main_screen.dart';
@@ -16,16 +20,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await AdManager().initialize();
+
+  final adMaster = AdMaster();
+  await adMaster.initialize(AdConfig());
   await EasyLocalization.ensureInitialized();
-  AdManager.setRealAdUnitIds({
-    'android': {'banner': 'ca-app-pub-4656262305566191/9797389928'},
-    'ios': {'banner': 'ca-app-pub-4656262305566191/7656024890'},
-  });
-  AdManager.setTestIds({
-    'android': {'banner': 'ca-app-pub-3940256099942544/6300978111'},
-    'ios': {'banner': 'ca-app-pub-3940256099942544/2934735716'},
-  });
+
   FlutterError.onError = (FlutterErrorDetails details) {
     debugPrint('[FLUTTER ERROR] ${details.exception}');
     debugPrint('[STACKTRACE] ${details.stack}');
