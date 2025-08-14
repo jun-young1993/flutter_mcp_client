@@ -51,8 +51,8 @@ class _MainScreenState extends State<MainScreen> {
             user: user,
             detailAd: AdMasterWidget(
               adType: AdType.banner,
-              adUnitId: 'ca-app-pub-3940256099942544/2934735716',
-              androidAdUnitId: 'ca-app-pub-3940256099942544/6300978111',
+              adUnitId: 'ca-app-pub-4656262305566191/7656024890',
+              androidAdUnitId: 'ca-app-pub-4656262305566191/9797389928',
               builder: (state, ad) {
                 return state.isLoaded && ad != null
                     ? AdWidget(ad: ad)
